@@ -3,9 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 from datetime import datetime
-
 BASE_URL = "https://www.thecountyrecorder.com"
-
 # Function to select state
 def select_state(session, state):
     response = session.get(BASE_URL)
@@ -122,9 +120,8 @@ def setup_search_with_pagination(session, state, county, start_date, end_date, o
     if response.status_code != 200:
         print("Failed to load search page.")
         return None
-    
     soup = BeautifulSoup(response.text, 'html.parser')
-    
+
     # Extract hidden fields for form submission
     viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
     eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
@@ -150,8 +147,6 @@ def setup_search_with_pagination(session, state, county, start_date, end_date, o
         print("Failed to execute search.")
         return None
     
-
-
 
 def parse_and_handle_pagination(session, soup, output_folder, start_date, end_date):
     print("Parsing search results with pagination...")
@@ -184,8 +179,6 @@ def parse_and_handle_pagination(session, soup, output_folder, start_date, end_da
         else:
             print("No next page link found. Stopping pagination.")
             break
-
-
 
 
 
@@ -521,22 +514,6 @@ def download_images(session, document_id, link, page_count, output_folder):
         else:
             print(f"Failed to load image page {image_page_url}")
 
-# Function to download files
-def download_files(document_id, output_folder):
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    
-    file_url = f"{BASE_URL}/Document.aspx?DK={document_id}"
-
-    response = requests.get(file_url)
-    if response.status_code == 200:
-        file_name = os.path.join(output_folder, f"{document_id}.pdf")
-        with open(file_name, 'wb') as file:
-            file.write(response.content)
-        print(f"Downloaded {file_name}")
-    else:
-        print(f"Failed to download {file_url}")
-
 # Main scraping function
 def scrape(state, county, start_date, end_date, output_folder):
     session = requests.Session()
@@ -556,7 +533,7 @@ def scrape(state, county, start_date, end_date, output_folder):
 
 # User input
 def user_input():
-    state = "COLORADO"
+    state = "COLORADO MI"
     county = "TELLER"
     start_date = "01-01-2006" #DASH WAALA
     end_date = "01-01-2015"

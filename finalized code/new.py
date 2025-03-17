@@ -6,84 +6,108 @@ from datetime import datetime
 
 BASE_URL = "https://www.thecountyrecorder.com"
 
+def get_initial_hidden_fields(session):
+    """Fetch initial VIEWSTATE and EVENTVALIDATION values"""
+    response = session.get(BASE_URL)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
+    eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
+    
+    return viewstate, eventvalidation
+
 # Function to select state
-def select_state(session, state):
+
+def select_state(session, state, viewstate, eventvalidation):
+    """Select a state and fetch updated hidden fields"""
     response = session.get(BASE_URL)
     
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
+    if response.status_code != 200:
+        print("Failed to load the state selection page.")
+        return None, None
 
-        # Extract hidden fields for form submission
-        viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
-        eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Ensure we send the correct state value (confirm state value matches the options)
-        state_dropdown = soup.find("select", {"id": "MainContent_searchMainContent_ctl01_ctl00_cboStates"})
-        state_value = None
-        for option in state_dropdown.find_all("option"):
-            if option.text.strip().upper() == state.upper():
-                state_value = option['value']
-                break
+    # Extract updated hidden fields for form submission
+    viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
+    eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
 
-        if not state_value:
-            print(f"State '{state}' not found!")
-            return False
+    # Find the correct state value from dropdown
+    state_dropdown = soup.find("select", {"id": "MainContent_searchMainContent_ctl01_ctl00_cboStates"})
+    state_value = None
+    for option in state_dropdown.find_all("option"):
+        if option.text.strip().upper() == state.upper():
+            state_value = option['value']
+            break
 
-        form_data = {
-            "__VIEWSTATE": viewstate,
-            "__EVENTVALIDATION": eventvalidation,
-            "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$cboStates": state_value,
-            "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$btnChangeCounty": "Go"
-        }
+    if not state_value:
+        print(f"State '{state}' not found in dropdown options!")
+        return None, None
 
-        post_response = session.post(BASE_URL, data=form_data)
-        if post_response.status_code == 200:
-            print(f"State '{state}' selected successfully.")
-            return True
-        else:
-            print("Failed to select state.")
-            return False
-    return False
+    # Submit form to select the state
+    form_data = {
+        "__VIEWSTATE": viewstate,
+        "__EVENTVALIDATION": eventvalidation,
+        "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$cboStates": state_value,
+        "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$btnChangeCounty": "Go"
+    }
+
+    post_response = session.post(BASE_URL, data=form_data)
+    if post_response.status_code != 200:
+        print("Failed to select state.")
+        return None, None
+
+    print(f"State '{state}' selected successfully.")
+
+    # Extract new hidden fields from response
+    soup = BeautifulSoup(post_response.text, 'html.parser')
+    new_viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
+    new_eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
+    
+    return new_viewstate, new_eventvalidation
 
 # Function to select county
-def select_county(session, county):
+def select_county(session, county, viewstate, eventvalidation):
+    """Select a county without reloading the page before"""
     response = session.get(BASE_URL)
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
+    if response.status_code != 200:
+        print("Failed to load the county selection page.")
+        return False
 
-        # Extract hidden fields for form submission
-        viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
-        eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Ensure we send the correct county value (confirm county value matches the options)
-        county_dropdown = soup.find("select", {"id": "MainContent_searchMainContent_ctl01_ctl00_cboCounties"})
-        county_value = None
-        for option in county_dropdown.find_all("option"):
-            if option.text.strip().upper() == county.upper():
-                county_value = option['value']
-                break
+    # Extract hidden fields for form submission
+    viewstate = soup.find("input", {"name": "__VIEWSTATE"})["value"]
+    eventvalidation = soup.find("input", {"name": "__EVENTVALIDATION"})["value"]
 
-        if not county_value:
-            print(f"County '{county}' not found!")
-            return False
+    # Find correct county value from dropdown
+    county_dropdown = soup.find("select", {"id": "MainContent_searchMainContent_ctl01_ctl00_cboCounties"})
+    county_value = None
+    for option in county_dropdown.find_all("option"):
+        if option.text.strip().upper() == county.upper():
+            county_value = option['value']
+            break
 
-        form_data = {
-            "__VIEWSTATE": viewstate,
-            "__EVENTVALIDATION": eventvalidation,
-            "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$cboCounties": county_value,
-            "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$btnChangeCounty": "Go"
-        }
+    if not county_value:
+        print(f"County '{county}' not found in dropdown options!")
+        return False
 
-        post_response = session.post(BASE_URL, data=form_data)
-        if post_response.status_code == 200:
-            print(f"County '{county}' selected successfully.")
-            return True
-        else:
-            print("Failed to select county.")
-            return False
-    return False
+    # Submit form to select the county
+    form_data = {
+        "__VIEWSTATE": viewstate,
+        "__EVENTVALIDATION": eventvalidation,
+        "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$cboCounties": county_value,
+        "ctl00$ctl00$MainContent$searchMainContent$ctl01$ctl00$btnChangeCounty": "Go"
+    }
 
+    post_response = session.post(BASE_URL, data=form_data)
+    if post_response.status_code != 200:
+        print("Failed to select county.")
+        return False
+
+    print(f"County '{county}' selected successfully.")
+    return True
 # Function to accept the disclaimer and navigate to the search page
 def accept_disclaimer(session):
     disclaimer_url = f"{BASE_URL}/Disclaimer.aspx?RU=%2FIntroduction.aspx"
@@ -157,7 +181,6 @@ def get_results_and_download(soup,session, output_folder, start_date, end_date):
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-
     parent_table = soup.find("table", id="tableMain")
     if parent_table:
         print("Parent table found")
@@ -313,10 +336,11 @@ def download_files(document_id, output_folder):
 
 # Main scraping function
 def scrape(state, county, start_date, end_date, output_folder):
+    
     session = requests.Session()
     session.cookies.clear()  # Optionally clear cookies manually
 
-    if not select_state(session, state):
+    if not select_state(session, state,):
         return
     if not select_county(session, county):
         return
@@ -332,9 +356,9 @@ def scrape(state, county, start_date, end_date, output_folder):
 # User input
 def user_input():
     state = "COLORADO"
-    county = "TELLER"
-    start_date = "01-01-1932"
-    end_date = "01-01-1933"
+    county = "WASHINGTON"
+    start_date = "01-01-2020"
+    end_date = "01-01-2022"
     output_folder = "output"
     return state, county, start_date, end_date, output_folder
 

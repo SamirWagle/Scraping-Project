@@ -1,0 +1,7 @@
+Document Identifier,Book-Page,Recording Date-Time,Document Type,Page Count,View Image
+Document Identifier,"<input id=""MainContent_searchMainContent_ctl00_tbReceptionNo"" name=""ctl00$ctl00$MainContent$searchMainContent$ctl00$tbReceptionNo"" readonly=""readonly"" tabindex=""-1"" type=""text""/>"
+Book-Page,"<input id=""MainContent_searchMainContent_ctl00_tbBookPage"" name=""ctl00$ctl00$MainContent$searchMainContent$ctl00$tbBookPage"" readonly=""readonly"" tabindex=""-1"" type=""text""/>"
+Recording Date-Time,"<input id=""MainContent_searchMainContent_ctl00_tbReceptionDate"" name=""ctl00$ctl00$MainContent$searchMainContent$ctl00$tbReceptionDate"" readonly=""readonly"" tabindex=""-1"" type=""text""/>"
+Document Type,"<input id=""MainContent_searchMainContent_ctl00_tbDocumentType"" name=""ctl00$ctl00$MainContent$searchMainContent$ctl00$tbDocumentType"" readonly=""readonly"" tabindex=""-1"" type=""text""/>"
+Page Count,"<input id=""MainContent_searchMainContent_ctl00_tbPageCount"" name=""ctl00$ctl00$MainContent$searchMainContent$ctl00$tbPageCount"" readonly=""readonly"" tabindex=""-1"" type=""text""/>"
+View Image,Image Not Available
